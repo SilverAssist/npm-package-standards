@@ -158,3 +158,7 @@ npm run format:check
 ## License
 
 [PolyForm Noncommercial 1.0.0](./LICENSE)
+
+---
+
+Made with ❤️ by Silver Assist
