@@ -96,8 +96,12 @@ chmod +x .husky/pre-commit .husky/pre-push
 
 - **License string**: `PolyForm-Noncommercial-1.0.0` — this exact
   capitalization, everywhere.
-- **`prepublishOnly` gate**: run the full suite before publishing —
-  `npm run clean && npm run typecheck && npm run lint && npm run test && npm run build`.
+- **`prepublishOnly` gate**: `npm run check && npm run build` (or just
+  `npm run check` for a package with no build step, or whose `check` already
+  runs `build` itself). Always reuse `check` rather than re-listing its
+  steps — a `prepublishOnly` that duplicates `check`'s steps instead of
+  calling it silently drifts the moment either one changes; confirmed
+  drift across 3 packages in this fleet before it was standardized.
 - **`check` script**: `format:check && typecheck && lint && test` — the
   single command CI and the pre-push hook both run.
 - **E2E port registry** (`@silverassist/next-testing-toolkit build-fixture --port <n>`,
@@ -133,20 +137,16 @@ chmod +x .husky/pre-commit .husky/pre-push
 
 ## Status
 
-New package (2026-08-30). Not yet published to npm or GitHub Packages — no
-CI/publish workflow exists yet (same Phase 1 gap `nextjs-core` and
-`next-script-loader` have). Consumers install it as a git dependency in the
-meantime:
+Published to npm as of 2026-08-30 (`0.1.0`). Install as a normal
+devDependency:
 
 ```json
 {
   "devDependencies": {
-    "@silverassist/npm-package-standards": "github:SilverAssist/npm-package-standards#main"
+    "@silverassist/npm-package-standards": "^0.1.0"
   }
 }
 ```
-
-Switch to a normal SemVer range once it's published for real.
 
 ## Development
 
