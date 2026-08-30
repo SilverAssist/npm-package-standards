@@ -1,0 +1,163 @@
+# @silverassist/npm-package-standards
+
+Shared ESLint/Prettier/tsconfig base configs and conventions for Silver
+Assist's published npm packages — `icons`, `recaptcha`, `consent-banner`,
+`script-loader`, `nextjs-core`, and any future one. The JS/TS analog of
+`wp-coding-standards` on the PHP side: a config package, not a runtime
+dependency.
+
+## Why this exists
+
+Auditing the three existing packages (2026-08-30) found real, confirmed
+drift, not hypothetical differences:
+
+- **`recaptcha` had no real ESLint at all** — its `"lint"` script ran
+  `tsc --noEmit`, which type-checks but lints nothing.
+- **Three different test runners**: `recaptcha` = Jest, `consent-banner` =
+  Vitest, `icons` = none (e2e only).
+- **Inverted ESM/CJS extension conventions**: `icons`/`recaptcha` use `.mjs`
+  for ESM and `.js` for CJS; `consent-banner` uses `"type": "module"` with
+  `.js` for ESM and `.cjs` for CJS. Both are internally consistent and
+  correctly published — this is a real fork, not a bug, and is **not**
+  something this package tries to converge (see "What's deliberately not
+  standardized" below).
+- **A literal license-string typo**: `"PolyForm-Noncommercial-1.0.0"`
+  (icons, consent-banner) vs. `"Polyform-Noncommercial-1.0.0"` (recaptcha —
+  wrong capitalization).
+- **Different Prettier settings**: `printWidth` 100 (icons) vs. 80
+  (consent-banner); `trailingComma` `"es5"` (icons) vs. `"all"`
+  (consent-banner).
+- **Different Prettier↔ESLint integration strategy**: `icons` ran Prettier
+  as an ESLint rule (`eslint-plugin-prettier`); `consent-banner` kept them
+  separate (`eslint-config-prettier` only disables conflicting stylistic
+  rules, a dedicated `format`/`format:check` script does the actual
+  formatting). This package standardizes on the separate-tools approach —
+  one less thing for `eslint --fix` to do, and `prettier --check` in CI is
+  the real formatting gate.
+- **Unequal pre-publish gates**: `recaptcha` runs
+  `clean && lint && build && test` before publishing; `icons`/`consent-banner`
+  only run `build`.
+
+## What's shared
+
+| Export                                               | For                                                                                                                                                                                                               |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@silverassist/npm-package-standards/eslint/base`    | Packages with no React components (`nextjs-core`, `script-loader`)                                                                                                                                                |
+| `@silverassist/npm-package-standards/eslint/react`   | Packages that ship React components (`icons`, `recaptcha`, `consent-banner`)                                                                                                                                      |
+| `@silverassist/npm-package-standards/prettier`       | Every package                                                                                                                                                                                                     |
+| `@silverassist/npm-package-standards/tsconfig/base`  | Every package, via `"extends"`                                                                                                                                                                                    |
+| `@silverassist/npm-package-standards/tsconfig/react` | React packages, via `"extends"` (adds DOM lib + `jsx: react-jsx`)                                                                                                                                                 |
+| `templates/husky/{pre-commit,pre-push}`              | Copy into `.husky/` — branch protection + `lint-staged` on commit, the full `npm run check` gate on push. Hooks can't be `extends`-ed the way JS/JSON configs can, so these are templates to copy, not an import. |
+
+Every export layers on top of a package's own overrides — this generalizes
+what's genuinely identical (base TS/React lint rules, Prettier style, the
+common `compilerOptions`), it doesn't force a single rigid config. A
+package with a real technical need (e.g. `recaptcha`'s TS7-specific
+`types: ["node"]`, or `consent-banner`'s path alias for its client
+subpath) still sets that itself, on top of `extends`.
+
+## Usage
+
+**ESLint** (`eslint.config.mjs`):
+
+```javascript
+import react from "@silverassist/npm-package-standards/eslint/react"; // or /eslint/base
+import tseslint from "typescript-eslint";
+import { ESLINT_IGNORE_PATTERNS } from "@silverassist/next-testing-toolkit";
+
+export default tseslint.config(...react, { ignores: [...ESLINT_IGNORE_PATTERNS, "dist/**"] });
+```
+
+**Prettier** (`package.json`):
+
+```json
+{ "prettier": "@silverassist/npm-package-standards/prettier" }
+```
+
+**TypeScript** (`tsconfig.json`):
+
+```json
+{
+  "extends": "@silverassist/npm-package-standards/tsconfig/react",
+  "compilerOptions": {
+    "paths": { "@scope/pkg/client": ["./src/client.ts"] }
+  }
+}
+```
+
+**Husky hooks** — copy once, don't import:
+
+```bash
+cp node_modules/@silverassist/npm-package-standards/templates/husky/pre-commit .husky/pre-commit
+cp node_modules/@silverassist/npm-package-standards/templates/husky/pre-push .husky/pre-push
+chmod +x .husky/pre-commit .husky/pre-push
+```
+
+## Conventions (documented, not enforced by a shared config)
+
+- **License string**: `PolyForm-Noncommercial-1.0.0` — this exact
+  capitalization, everywhere.
+- **`prepublishOnly` gate**: run the full suite before publishing —
+  `npm run clean && npm run typecheck && npm run lint && npm run test && npm run build`
+  (mirrors `recaptcha`'s already-correct gate; `icons`/`consent-banner`
+  should adopt it too, not the other way around).
+- **`check` script**: `format:check && typecheck && lint && test` — the
+  single command CI and the pre-push hook both run.
+- **E2E port registry** (`@silverassist/next-testing-toolkit build-fixture --port <n>`,
+  one per package so suites can run in parallel):
+
+  | Port | Package          |
+  | ---- | ---------------- |
+  | 3210 | `recaptcha`      |
+  | 3211 | `consent-banner` |
+  | 3212 | `icons`          |
+  | 3213 | `nextjs-core`    |
+  | 3214 | `script-loader`  |
+
+  Claim the next unused port for a new package rather than reusing one.
+
+## What's deliberately NOT standardized
+
+- **Test runner** (Jest vs. Vitest vs. none). Migrating an existing
+  package's test suite between runners is a real, risky rewrite with no
+  behavioral upside — out of scope for a tooling-standards pass. New
+  packages should default to Jest (the fleet-wide choice across the
+  site repos and `nextjs-core`/`script-loader`), but an existing package's
+  choice is left as-is.
+- **ESM/CJS extension convention** (`.mjs`/`.js` vs. `"type": "module"` +
+  `.js`/`.cjs`). Both are correct, published, working conventions; forcing
+  one would mean touching every consumer's build output and `exports` map
+  for a purely cosmetic gain.
+- **tsdown entry structure** (single-entry vs. multi-entry with a
+  `"use client"` banner). `consent-banner` and `recaptcha` both need
+  multi-entry configs for their client/server split; `icons` correctly
+  stays single-entry since it ships no client components at all. This is a
+  real technical difference, not drift.
+
+## Status
+
+New package (2026-08-30). Not yet published to npm or GitHub Packages — no
+CI/publish workflow exists yet (same Phase 1 gap `nextjs-core` and
+`script-loader` have). Consumers install it as a git dependency in the
+meantime:
+
+```json
+{
+  "devDependencies": {
+    "@silverassist/npm-package-standards": "github:SilverAssist/npm-package-standards#main"
+  }
+}
+```
+
+Switch to a normal SemVer range once it's published for real.
+
+## Development
+
+```bash
+npm install
+npm run format:check
+```
+
+## License
+
+[PolyForm Noncommercial 1.0.0](./LICENSE)

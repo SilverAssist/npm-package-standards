@@ -1,0 +1,74 @@
+{
+  "name": "@silverassist/npm-package-standards",
+  "version": "0.1.0",
+  "description": "Shared ESLint/Prettier/tsconfig base configs and conventions for Silver Assist's published npm packages.",
+  "author": "Miguel Colmenares <me@miguelcolmenares.com>",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SilverAssist/npm-package-standards.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SilverAssist/npm-package-standards/issues"
+  },
+  "homepage": "https://github.com/SilverAssist/npm-package-standards#readme",
+  "keywords": [
+    "eslint-config",
+    "prettier-config",
+    "tsconfig",
+    "standards"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "files": [
+    "eslint",
+    "tsconfig",
+    "prettier.json",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs",
+    "./eslint/react": "./eslint/react.mjs",
+    "./prettier": "./prettier.json",
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/react": "./tsconfig/react.json"
+  },
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,mjs,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,ts,tsx,json,md}\"",
+    "check": "npm run format:check",
+    "prepare": "husky || true"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "peerDependencies": {
+    "eslint": ">=9",
+    "typescript-eslint": ">=8",
+    "eslint-plugin-react": ">=7"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.68.0"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,json,md}": [
+      "prettier --write"
+    ]
+  }
+}
