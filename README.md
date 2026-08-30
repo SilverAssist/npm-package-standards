@@ -2,7 +2,7 @@
 
 Shared ESLint/Prettier/tsconfig base configs and conventions for Silver
 Assist's published npm packages — `icons`, `recaptcha`, `consent-banner`,
-`script-loader`, `nextjs-core`, and any future one. The JS/TS analog of
+`next-script-loader`, `nextjs-core`, and any future one. The JS/TS analog of
 `wp-coding-standards` on the PHP side: a config package, not a runtime
 dependency.
 
@@ -17,7 +17,7 @@ place and every package picks it up, the same relationship
 
 | Export                                               | For                                                                                                                                                                                                               |
 | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@silverassist/npm-package-standards/eslint/base`    | Packages with no React components (`nextjs-core`, `script-loader`)                                                                                                                                                |
+| `@silverassist/npm-package-standards/eslint/base`    | Packages with no React components (`nextjs-core`, `next-script-loader`)                                                                                                                                           |
 | `@silverassist/npm-package-standards/eslint/react`   | Packages that ship React components (`icons`, `recaptcha`, `consent-banner`)                                                                                                                                      |
 | `@silverassist/npm-package-standards/prettier`       | Every package                                                                                                                                                                                                     |
 | `@silverassist/npm-package-standards/tsconfig/base`  | Every package, via `"extends"`                                                                                                                                                                                    |
@@ -103,13 +103,13 @@ chmod +x .husky/pre-commit .husky/pre-push
 - **E2E port registry** (`@silverassist/next-testing-toolkit build-fixture --port <n>`,
   one per package so suites can run in parallel):
 
-  | Port | Package          |
-  | ---- | ---------------- |
-  | 3210 | `recaptcha`      |
-  | 3211 | `consent-banner` |
-  | 3212 | `icons`          |
-  | 3213 | `nextjs-core`    |
-  | 3214 | `script-loader`  |
+  | Port | Package              |
+  | ---- | -------------------- |
+  | 3210 | `recaptcha`          |
+  | 3211 | `consent-banner`     |
+  | 3212 | `icons`              |
+  | 3213 | `nextjs-core`        |
+  | 3214 | `next-script-loader` |
 
   Claim the next unused port for a new package rather than reusing one.
 
@@ -119,7 +119,7 @@ chmod +x .husky/pre-commit .husky/pre-push
   package's test suite between runners is a real, risky rewrite with no
   behavioral upside — out of scope for a tooling-standards pass. New
   packages should default to Jest (the fleet-wide choice across the
-  site repos and `nextjs-core`/`script-loader`), but an existing package's
+  site repos and `nextjs-core`/`next-script-loader`), but an existing package's
   choice is left as-is.
 - **ESM/CJS extension convention** (`.mjs`/`.js` vs. `"type": "module"` +
   `.js`/`.cjs`). Both are correct, published, working conventions; forcing
@@ -135,7 +135,7 @@ chmod +x .husky/pre-commit .husky/pre-push
 
 New package (2026-08-30). Not yet published to npm or GitHub Packages — no
 CI/publish workflow exists yet (same Phase 1 gap `nextjs-core` and
-`script-loader` have). Consumers install it as a git dependency in the
+`next-script-loader` have). Consumers install it as a git dependency in the
 meantime:
 
 ```json
