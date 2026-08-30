@@ -8,35 +8,10 @@ dependency.
 
 ## Why this exists
 
-Auditing the three existing packages (2026-08-30) found real, confirmed
-drift, not hypothetical differences:
-
-- **`recaptcha` had no real ESLint at all** — its `"lint"` script ran
-  `tsc --noEmit`, which type-checks but lints nothing.
-- **Three different test runners**: `recaptcha` = Jest, `consent-banner` =
-  Vitest, `icons` = none (e2e only).
-- **Inverted ESM/CJS extension conventions**: `icons`/`recaptcha` use `.mjs`
-  for ESM and `.js` for CJS; `consent-banner` uses `"type": "module"` with
-  `.js` for ESM and `.cjs` for CJS. Both are internally consistent and
-  correctly published — this is a real fork, not a bug, and is **not**
-  something this package tries to converge (see "What's deliberately not
-  standardized" below).
-- **A literal license-string typo**: `"PolyForm-Noncommercial-1.0.0"`
-  (icons, consent-banner) vs. `"Polyform-Noncommercial-1.0.0"` (recaptcha —
-  wrong capitalization).
-- **Different Prettier settings**: `printWidth` 100 (icons) vs. 80
-  (consent-banner); `trailingComma` `"es5"` (icons) vs. `"all"`
-  (consent-banner).
-- **Different Prettier↔ESLint integration strategy**: `icons` ran Prettier
-  as an ESLint rule (`eslint-plugin-prettier`); `consent-banner` kept them
-  separate (`eslint-config-prettier` only disables conflicting stylistic
-  rules, a dedicated `format`/`format:check` script does the actual
-  formatting). This package standardizes on the separate-tools approach —
-  one less thing for `eslint --fix` to do, and `prettier --check` in CI is
-  the real formatting gate.
-- **Unequal pre-publish gates**: `recaptcha` runs
-  `clean && lint && build && test` before publishing; `icons`/`consent-banner`
-  only run `build`.
+One shared config instead of each package maintaining its own copy of the
+same ESLint/Prettier/tsconfig setup — a fix or a rule change lands in one
+place and every package picks it up, the same relationship
+`wp-coding-standards` has to Silver Assist's PHP plugins.
 
 ## What's shared
 
@@ -98,9 +73,7 @@ chmod +x .husky/pre-commit .husky/pre-push
 - **License string**: `PolyForm-Noncommercial-1.0.0` — this exact
   capitalization, everywhere.
 - **`prepublishOnly` gate**: run the full suite before publishing —
-  `npm run clean && npm run typecheck && npm run lint && npm run test && npm run build`
-  (mirrors `recaptcha`'s already-correct gate; `icons`/`consent-banner`
-  should adopt it too, not the other way around).
+  `npm run clean && npm run typecheck && npm run lint && npm run test && npm run build`.
 - **`check` script**: `format:check && typecheck && lint && test` — the
   single command CI and the pre-push hook both run.
 - **E2E port registry** (`@silverassist/next-testing-toolkit build-fixture --port <n>`,
