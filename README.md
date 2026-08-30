@@ -55,10 +55,34 @@ export default tseslint.config(...react, { ignores: [...ESLINT_IGNORE_PATTERNS, 
 {
   "extends": "@silverassist/npm-package-standards/tsconfig/react",
   "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "outDir": "./dist",
+    "rootDir": "./src",
     "paths": { "@scope/pkg/client": ["./src/client.ts"] }
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
 ```
+
+`outDir`/`rootDir`/`include`/`exclude` aren't in the shared base and never
+will be: TypeScript resolves path-valued `compilerOptions` in an extended
+config relative to _that config file's own location_, not the consumer's —
+so `rootDir: "./src"` in this package would mean `<this package>/src`, not
+your package's `src/`. Every consumer declares these itself, same as
+`paths`.
+
+**`lib` must also be restated, even though it isn't path-valued.** Confirmed
+empirically: when your own `typescript` devDependency version differs from
+the one this package pins, `extends`-ing a config from a _different_
+package resolves `lib.*.d.ts` inconsistently — a real repro had a consumer
+on `typescript@5.9.3` extending this package (pinned to `^6.0.3`) silently
+lose `DOM` from its effective `lib`, surfacing as `RequestCache` not found
+and `Response.json()` typed as `Promise<unknown>` instead of `Promise<any>`
+(a real difference between TypeScript 5 and 6's `lib.dom.d.ts`). Copy the
+`lib` array from whichever variant you extend (`/tsconfig/base` is
+`["ES2020", "DOM"]`, `/tsconfig/react` adds `"DOM.Iterable"`) into your own
+`compilerOptions` — restating the exact same values is enough to fix it.
 
 **Husky hooks** — copy once, don't import:
 

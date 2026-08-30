@@ -1,7 +1,11 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020"],
+    // DOM (not just ES2020) even for non-React packages: `fetch`, `Response`,
+    // `RequestCache` and friends are typed via lib.dom.d.ts, not @types/node
+    // -- a server-only package that calls fetch() still needs this.
+    "lib": ["ES2020", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
@@ -11,10 +15,6 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+    "sourceMap": true
+  }
 }
