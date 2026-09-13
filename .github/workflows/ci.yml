@@ -1,0 +1,55 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Code Quality (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.x', '24.x']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      # This package has no build/lint/test scripts of its own -- it only
+      # exports config files (eslint/*.mjs, tsconfig/*.json, prettier.json)
+      # for consumers to extend. The actual risk surface is those exports
+      # still resolving and producing a valid flat-config array after any
+      # dependency bump (see eslint/base.mjs, eslint/react.mjs).
+      - name: Verify exported ESLint configs load
+        run: |
+          node --input-type=module -e "
+            import('./eslint/base.mjs').then((m) => {
+              if (!Array.isArray(m.default)) throw new Error('eslint/base.mjs default export is not an array');
+              console.log('eslint/base.mjs OK:', m.default.length, 'entries');
+            });
+          "
+          node --input-type=module -e "
+            import('./eslint/react.mjs').then((m) => {
+              if (!Array.isArray(m.default)) throw new Error('eslint/react.mjs default export is not an array');
+              console.log('eslint/react.mjs OK:', m.default.length, 'entries');
+            });
+          "
