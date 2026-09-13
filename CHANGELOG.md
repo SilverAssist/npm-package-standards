@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 (2026-09-12)
+
+- Bumped `eslint` (devDependency) and `@eslint/js` (the runtime dependency
+  re-exported through `eslint/base` and `eslint/react`) to the 10.x line, to
+  match the version every consumer of this package had already migrated to.
+- Added the `eslint-plugin-react` override (`eslint: "$eslint"`) that every
+  consumer already carried — its published peer range doesn't reach
+  eslint 10 yet, so without the override `npm install` fails here too.
+
 ## 0.1.0 (2026-08-30)
 
 Initial release. Shared ESLint (`eslint/base`, `eslint/react`), Prettier,
